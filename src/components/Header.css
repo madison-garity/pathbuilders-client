@@ -1,0 +1,67 @@
+/* General header styles */
+/* General header styles */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  width: 80%; /* Ensures the header spans the full width */
+  padding: 5px 20px;
+  background-color: white; /* Set a default background */
+  z-index: 1000; /* Ensure the header stays on top */
+}
+/* Branding text */
+.branding h1 {
+  font-size: 20px;
+  color: #003366; /* Dark blue for branding */
+  font-weight: 600;
+}
+
+/* Icons container */
+.header-icons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  color: rgba(12, 57, 85, 1);
+}
+
+/* Light/Dark mode toggle */
+.toggle-mode {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Profile icon */
+.profile-icon {
+  background-color: rgba(229, 244, 255, 1); /* Light blue background */
+  color: #003366; /* Dark blue for text */
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Dark mode styling */
+body.dark-mode {
+  background-color: rgba(0, 123, 211, 0.2); /* Dark background */
+  color: rgba(229, 244, 255, 1); /* Light text */
+}
+
+body.dark-mode .header {
+  background-color: rgba(12, 57, 85, 1); /* Dark background for header */
+}
+
+body.dark-mode .branding h1 {
+  color: rgba(229, 244, 255, 1) /* Light text for branding */
+}
+
+body.dark-mode .header-icons {
+  color: rgba(229, 244, 255, 1); /* Light text */
+}

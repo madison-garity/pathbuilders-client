@@ -1,0 +1,90 @@
+.main-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 700px;
+  text-align: left; /* Set the text alignment to left */
+  background-color: #ffffff;
+}
+
+.content-header {
+  margin-bottom: 30px;
+  text-align: center; /* Header text can remain centered */
+}
+
+.content-header h1 {
+  font-size: 36px;
+  color: rgba(12, 57, 85, 1);
+  margin-bottom: 10px;
+}
+
+.content-header p {
+  font-size: 18px;
+  color: rgba(12, 57, 85, 1);
+}
+
+.suggestions {
+  display: flex;
+  gap: 20px;
+}
+
+.suggestion-card {
+  border-color: #f5f5f5;
+  border-radius: 2px;
+  padding: 20px;
+  border-radius: 10px;
+  width: 200px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Align content to the top */
+  align-items: flex-start; /* Align everything to the left */
+}
+
+.suggestion-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.icon {
+  font-size: 36px; /* Icon size */
+  color: rgba(12, 57, 85, 1); /* New icon color */
+  margin-bottom: 10px;
+}
+
+.logo {
+  width: 50px; /* Adjust this size to fit your design */
+  height: 50px;
+}
+
+.suggestion-card h3 {
+  font-size: 18px;
+  color: rgba(12, 57, 85, 1);
+  margin-bottom: 10px;
+}
+
+.suggestion-card p {
+  font-size: 14px;
+  color: rgba(54, 104, 137, 1); /* New font color */
+}
+
+.dark-mode .main-content{
+  background-color: rgba(12, 57, 85, 1); /* Dark background color */
+}
+
+.dark-mode .suggestion-card {
+  background-color: rgba(0, 123, 211, 0.2); /* Light blue background for user messages */
+}
+
+.dark-mode .suggestion-card p {
+  color: rgba(137, 177, 204, 1);
+}
+
+.dark-mode .content-header h1, .dark-mode .content-header p, .dark-mode .suggestion-card h3, .dark-mode .icon {
+  color: rgba(229, 244, 255, 1); /* Light text for branding */
+}
+
+

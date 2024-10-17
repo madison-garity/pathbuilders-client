@@ -1,0 +1,135 @@
+/* General layout styles */
+.app {
+  display: flex;
+  height: 100vh; /* Full height of the screen */
+}
+
+/* Header styles */
+.header {
+  padding: 10px 20px;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;/* Start at the top and expand down */
+  padding-left: 250px;
+  padding-top: 20px;
+}
+
+.main-content-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center horizontally */
+  padding: 60px;
+}
+
+.center-content {
+  flex: 1;
+  display: flex;
+  justify-content: center; /* Horizontal center */
+  align-items: center; /* Vertical center */
+}
+
+.chat-window {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 700px; /* Restrict the chat width */
+}
+
+.messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Align messages at the top */
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* Message bubbles styling */
+.message {
+  display: inline-block;
+  padding: 0px 15px;
+  margin: 5px 0;
+  font-size: 14px;
+  border-radius: 20px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  width: auto;
+  max-width: 100%; /* Ensure the messages respect the container's width */
+}
+
+/* User message styling */
+.message.user {
+  background-color: rgba(229, 244, 255, 1) ;
+  color: rgba(12, 57, 85, 1);
+  align-self: flex-end;
+  border-radius: 20px 20px 0 20px;
+  width: fit-content;
+  max-width: 100%;
+  margin-left: auto;
+}
+
+/* Assistant message styling */
+.message.assistant {
+  width: 100%; /* Full width for assistant responses */
+  background-color: transparent; /* No background color */
+  color: #333;
+  padding: 10px 0;
+}
+
+/* Input area styling */
+.chat-input {
+  display: flex;
+  padding: 15px;
+  background-color: white;
+  border-top: 1px solid #ddd;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 700px; /* Match the width of the messages */
+  margin-top: auto; /* Make the input field stick to the bottom */
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  font-size: 16px;
+  margin-right: 10px;
+}
+
+.chat-input button {
+  padding: 12px 20px;
+  background-color: #0078d4;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.chat-input button:hover {
+  background-color: #005bb5;
+}
+
+.dark-mode .main-content-area,
+.dark-mode .chat-window {
+  background-color: rgba(12, 57, 85, 1); /* Dark blue background */
+}
+
+.dark-mode .message.user {
+  background-color: rgba(0, 123, 211, 0.2); /* Light blue background for user messages */
+  color: rgba(229, 244, 255, 1); /* White-ish text for user messages */
+}
+
+.dark-mode .message.assistant {
+  color: rgba(229, 244, 255, 1); /* White text for assistant messages */
+}
+
+.dark-mode .app {
+  background-color: rgba(12, 57, 85, 1); /* Dark blue background */
+  color: rgba(229, 244, 255, 1); /* White text */
+}

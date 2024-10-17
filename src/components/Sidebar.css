@@ -1,0 +1,171 @@
+/* Sidebar container */
+.sidebar {
+  width: 250px;
+  background-color: rgba(229, 244, 255, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow-y: auto;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+}
+
+/* Header section with two icons */
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Menu and placeholder icons */
+.menu-icon {
+  font-size: 20px;
+  color: #94b3c5; /* Light blue color for the left menu icon */
+}
+
+.new-chat-placeholder {
+  font-size: 20px;
+  color: #94b3c5; /* Light blue color for the placeholder icon */
+}
+
+/* New Chat Button on a new line */
+.new-chat-container {
+  padding: 0 20px; /* Ensure it has consistent padding with the header */
+  margin-top: 5px; /* Spacing from the header icons */
+}
+
+.new-chat {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 14px;
+  color: #003366; /* Darker blue for the text */
+  font-weight: bold;
+  padding-bottom: 10px;
+}
+
+.new-chat-icon {
+  margin-right: 8px;
+  font-size: 20px; /* Slightly larger for the pencil icon */
+  color: #003366; /* Same dark blue for the icon */
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #ddd;
+  margin: 10px 0;
+}
+
+.sidebar-section {
+  padding: 0 20px;
+  flex-grow: 1;
+}
+
+.sidebar-section h4 {
+  font-size: 12px;
+  font-weight: bold;
+  color: rgba(12, 57, 85, 1);
+}
+
+.subheader {
+  font-size: 14px;
+  color: rgba(12, 57, 85, 1);
+  display: flex;
+  align-items: center; /* Ensures icon and text are vertically aligned */
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.icon-favorites, .icon-recents {
+  margin-right: 8px;
+  font-size: 20px;
+  color: #002d72;
+}
+
+.chat-item {
+  padding: 8px 0;
+  font-size: 14px;
+  color: #002d72;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+}
+
+.chat-item span {
+  margin-right: 10px;
+}
+
+.chat-item:hover {
+  background-color: rgba(0, 123, 211, 0.1);
+  border-radius: 5px;
+}
+
+.sidebar-footer {
+  padding: 20px;
+  font-size: 14px;
+  color:rgba(12, 57, 85, 1);
+}
+
+.sidebar-footer div {
+  margin-bottom: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center; /* Align icon and text in a row */
+}
+
+.settings-icon,
+.help-icon {
+  margin-right: 8px; /* Space between icon and text */
+  font-size: 18px; /* Adjust icon size */
+}
+
+.sidebar-footer p {
+  font-size: 12px;
+  color: rgba(12, 57, 85, 1);
+}
+
+/* Dark mode for sidebar */
+.dark-mode .sidebar {
+  background-color: rgba(8, 72, 112, 1);
+}
+
+.dark-mode .sidebar-header,
+.dark-mode .new-chat-container,
+.dark-mode .sidebar-section,
+.dark-mode .sidebar-footer {
+  color: rgba(229, 244, 255, 1);
+}
+
+.dark-mode .new-chat-icon,
+.dark-mode .icon-favorites,
+.dark-mode .icon-recents,
+.dark-mode .help-icon,
+.dark-mode .settings-icon {
+  color: rgba(229, 244, 255, 1); /* Light blue for icons */
+}
+
+.dark-mode .chat-item, .dark-mode .subheader, .dark-mode .new-chat {
+  color: rgba(229, 244, 255, 1);
+}
+
+.dark-mode .sidebar-section h4 {
+  color: rgba(229, 244, 255, 1);
+  font-weight: bold;
+}
+
+.dark-mode .chat-item:hover {
+  background-color: rgba(0, 123, 211, 0.2); /* Lighter hover effect for dark mode */
+}
+
+/* Divider line */
+.dark-mode hr {
+  border-color: rgba(229, 244, 255, 0.5); /* Light divider for dark mode */
+}
+
+.dark-mode .sidebar-footer p {
+  color: rgba(229, 244, 255, 1);
+}
+
