@@ -5,32 +5,7 @@ import { FiEdit, FiMenu } from 'react-icons/fi';
 import { MdAccessTime } from 'react-icons/md'; 
 import './Sidebar.css';
 
-const Sidebar = ({ onNewChat, onLoadChat }) => {
-  // State to store chats fetched from the database
-  const [chats, setChats] = useState([]);
-
-  // Fetch chats when component loads
-  useEffect(() => {
-    const fetchChats = async () => {
-      try {
-        // Use the Fetch API to get the chats from the backend
-        const response = await fetch('http://localhost:5000/api/chats'); // Adjust the URL as necessary
-        if (!response.ok) {
-          throw new Error('Failed to fetch chats');
-        }
-        const data = await response.json(); // Parse the JSON from the response
-        setChats(data); // Store chats in state
-      } catch (error) {
-        console.error('Error fetching chats:', error);
-      }
-    };
-
-    fetchChats();
-  }, []); // Empty dependency array ensures this runs only once when the component is mounted
-
-  // Separate chats into recent and favorites based on isFavorite property
-  const recentChats = chats.filter(chat => !chat.isFavorite);
-  const favoriteChats = chats.filter(chat => chat.isFavorite);
+const Sidebar = ({ chats, onNewChat, onLoadChat }) => {
 
   return (
     <div className="sidebar">
@@ -46,25 +21,28 @@ const Sidebar = ({ onNewChat, onLoadChat }) => {
         </div>
         <hr />
       </div>
+
+       {/* Favorites Section */}
+       <div className="subheader">
+          <AiOutlineHeart className="icon-favorites" /> Favorites
+        </div>
+        {chats.favorites && chats.favorites.length === 0 && <p>No favorite chats yet.</p>}
+        {chats.favorites && chats.favorites.map(chat => (
+          <div key={chat.id} onClick={() => onLoadChat(chat)}>
+            {chat.title}
+          </div>
+        ))}
+
       <div className="sidebar-section">
-        <h4>Previous Chats</h4>
+        <h4>Recent Chats</h4>
 
         {/* Recent Section */}
         <div className="subheader">
           <MdAccessTime className="icon-recents" /> Recent
         </div>
-        {recentChats.map((chat, index) => (
-          <div key={index} className="chat-item" onClick={() => onLoadChat(chat)}>
-            {chat.title}
-          </div>
-        ))}
-
-        {/* Favorites Section */}
-        <div className="subheader">
-          <AiOutlineHeart className="icon-favorites" /> Favorites
-        </div>
-        {favoriteChats.map((chat, index) => (
-          <div key={index} className="chat-item" onClick={() => onLoadChat(chat)}>
+        {chats.recents && chats.recents.length === 0 && <p>No recent chats yet.</p>}
+        {chats.recents && chats.recents.map(chat => (
+          <div key={chat.id} onClick={() => onLoadChat(chat)}>
             {chat.title}
           </div>
         ))}

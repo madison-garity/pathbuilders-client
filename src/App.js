@@ -32,6 +32,24 @@ const App = () => {
   };
   const openai = new OpenAI(configuration);
 
+  useEffect(() => {
+    const fetchChats = async () => {
+      try {
+        const response = await fetch(process.env.REACT_APP_API_URL + '/api/chats'); // Adjust based on your API endpoint
+        const data = await response.json();
+
+        // Group by favorites and recents, then sort by updatedAt
+        const favorites = data.filter(chat => chat.isFavorite).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        const recents = data.filter(chat => !chat.isFavorite).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        setChats({ favorites, recents });
+      } catch (error) {
+        console.error('Error fetching chats:', error);
+      }
+    };
+
+    fetchChats();
+  }, []);
+
   // Function to create a thread
   const createThread = async () => {
     try {
@@ -56,109 +74,162 @@ const App = () => {
     }
   };
 
-  // Handle new chat creation
-  const handleNewChat = () => {
-    setMessages([]);
-    setCurrentChat(null); // Clear the current chat
-    createThread();
-  };
-
-  // Handle loading a previous chat
-  const handleLoadChat = (chat) => {
-    setMessages(chat.messages);
-    setCurrentChat(chat); // Set the current chat
-  };
-
-    // Function to add a message to the thread
-    const handleSendMessage = async (message) => {
-      setMessages([...messages, { sender: 'user', text: message }]);
-      setLoading(true); // Show loading dots
+  // Handle sending a message
+  const handleSendMessage = async (message) => {
+    setLoading(true);
+    const newMessages = [...messages, { sender: 'user', text: message }];
+    setMessages(newMessages);
   
+    if (!currentChat) {
       try {
-        const response = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+        createThread();
+        const chatResponse = await fetch(process.env.REACT_APP_API_URL + '/api/chats-with-message', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${process.env.REACT_APP_OPENAI_KEY}`,
-            'OpenAI-Beta': 'assistants=v2',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            role: 'user',
-            content: message,
+            name: message,
+            threadId: threadId,
+            userId: 'loggedInUserId', // Use actual user ID here
+            text: message,            // The first message
           }),
         });
   
-        console.log(response)
-  
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status}`);
-        }
-  
-        const data = await response.json();
-        console.log('User message added to thread:', data);
-        runThreadAndStreamResponse(); // Start the assistant response
+        const { chat, message: createdMessage } = await chatResponse.json();
+        setCurrentChat(chat); // Set the new chat as current
+        updateSidebarChats(chat); // Update sidebar with new chat
+        
       } catch (error) {
-        console.error('Error adding message to thread:', error);
-        setLoading(false); // Hide loading dots if there's an error
+        console.error('Error creating new chat or adding message:', error);
+        setLoading(false);
       }
-    };
-  
-    // Function to run the thread and stream the assistant's response
-    const runThreadAndStreamResponse = async () => {
+    } else {
+      // If chat already exists, just send the message
       try {
-        let currentText = ''; // Variable to hold the growing assistant response
-        const run = openai.beta.threads.runs.stream(threadId, {
-          assistant_id: 'asst_AudQ4y7QvPv8yfDJmyztvQVY', // Replace with your assistant ID
+        await fetch(process.env.REACT_APP_API_URL + `/api/chats/${currentChat.id}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chatId: currentChat.id,
+            text: message,
+            sender: 'user',
+          }),
+        });
+      } catch (error) {
+        console.error('Error sending message:', error);
+        setLoading(false);
+      }
+    }
+
+    const response = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.REACT_APP_OPENAI_KEY}`,
+        'OpenAI-Beta': 'assistants=v2',
+      },
+      body: JSON.stringify({
+        role: 'user',
+        content: message,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status}`);
+    }
+
+    runThreadAndStreamResponse(); // Simulate the assistant response
+    setLoading(false);
+  };
+  
+  // Fetch messages for the selected chat
+  const handleLoadChat = async (chat) => {
+    try {
+      const response = await fetch(process.env.REACT_APP_API_URL + `/api/chats/${chat.id}/messages`);
+      const messagesData = await response.json();
+      setMessages(messagesData);
+      setCurrentChat(chat); // Track current chat
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    }
+  };
+
+  // Update the sidebar when a new chat is created
+  const updateSidebarChats = (newChat) => {
+    const updatedChats = [...chats.recents, newChat].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+    setChats({
+      favorites: chats.favorites,
+      recents: updatedChats,
+    });
+  };
+
+  const runThreadAndStreamResponse = async () => {
+    try {
+      let currentText = ''; // Variable to hold the growing assistant response
+      const run = openai.beta.threads.runs.stream(threadId, {
+        assistant_id: process.env.REACT_APP_ASSISTANT_ID,
+      })
+        .on('textCreated', () => {
+          console.log('\nAssistant is thinking...');
         })
-          .on('textCreated', () => {
-            console.log('\nAssistant is thinking...');
-          })
-          .on('textDelta', (textDelta, snapshot) => {
-            setLoading(false); // Hide loading dots once the response starts streaming
-            console.log('Streaming text:', textDelta.value);
-            
-            // Append the delta to the growing response
-            currentText += textDelta.value;
-    
-            // Update the last message (assistant's message) with the streaming text
-            setMessages((prevMessages) => {
-              const lastMessage = prevMessages[prevMessages.length - 1];
-              
-              // If the last message is from the assistant, update it
-              if (lastMessage.sender === 'assistant') {
-                const updatedMessages = [...prevMessages];
-                updatedMessages[updatedMessages.length - 1] = {
-                  ...lastMessage,
-                  text: currentText,
-                };
-                return updatedMessages;
-              }
-              
-              // If no assistant message exists, add a new one
-              return [...prevMessages, { sender: 'assistant', text: currentText }];
-            });
-          })
-          .on('toolCallCreated', (toolCall) => {
-            console.log(`\nAssistant initiated a tool call: ${toolCall.type}`);
-          })
-          .on('toolCallDelta', (toolCallDelta) => {
-            console.log('\nTool call delta received:', toolCallDelta);
-            if (toolCallDelta.type === 'code_interpreter') {
-              console.log('\nCode Interpreter inputs:', toolCallDelta.code_interpreter.input);
-              console.log('\nCode Interpreter outputs:', toolCallDelta.code_interpreter.outputs);
+        .on('textDelta', async (textDelta, snapshot) => {
+          setLoading(false); // Hide loading dots once the response starts streaming
+          console.log('Streaming text:', textDelta.value);
+  
+          // Append the delta to the growing response
+          currentText += textDelta.value;
+  
+          // Update the last message (assistant's message) with the streaming text
+          setMessages((prevMessages) => {
+            const lastMessage = prevMessages[prevMessages.length - 1];
+  
+            // If the last message is from the assistant, update it
+            if (lastMessage.sender === 'assistant') {
+              const updatedMessages = [...prevMessages];
+              updatedMessages[updatedMessages.length - 1] = {
+                ...lastMessage,
+                text: currentText,
+              };
+              return updatedMessages;
             }
-          })
-          .on('error', (error) => {
-            console.error('Stream encountered an error:', error);
-            setLoading(false); // Hide loading dots in case of an error
+  
+            // If no assistant message exists, add a new one
+            return [...prevMessages, { sender: 'assistant', text: currentText }];
           });
   
-          console.log(run)
-      } catch (error) {
-        console.error('Error running thread and streaming response:', error);
-        setLoading(false); // Hide loading dots if there's an error
-      }
-    };
+          // Save the assistant's streamed response to the backend
+          try {
+            await fetch(process.env.REACT_APP_API_URL + `/api/chats/${currentChat.id}/messages`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                chatId: currentChat.id,
+                text: currentText,
+                sender: 'assistant', // Save the assistant message
+              }),
+            });
+          } catch (error) {
+            console.error('Error saving assistant message:', error);
+          }
+        })
+        .on('toolCallCreated', (toolCall) => {
+          console.log(`\nAssistant initiated a tool call: ${toolCall.type}`);
+        })
+        .on('toolCallDelta', (toolCallDelta) => {
+          console.log('\nTool call delta received:', toolCallDelta);
+          if (toolCallDelta.type === 'code_interpreter') {
+            console.log('\nCode Interpreter inputs:', toolCallDelta.code_interpreter.input);
+            console.log('\nCode Interpreter outputs:', toolCallDelta.code_interpreter.outputs);
+          }
+        })
+        .on('error', (error) => {
+          console.error('Stream encountered an error:', error);
+          setLoading(false); // Hide loading dots in case of an error
+        });
+    } catch (error) {
+      console.error('Error running thread and streaming response:', error);
+      setLoading(false); // Hide loading dots if there's an error
+    }
+  };
 
   return (
       <Routes>
