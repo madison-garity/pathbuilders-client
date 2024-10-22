@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import './Login.css'; // Reuse the same CSS as Login for styling consistency
 
 const ResetPassword = () => {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const { token } = useParams(); // Get token from URL
+  const navigate = useNavigate(); // Use to navigate to login screen
+  const [isSuccess, setIsSuccess] = useState(false); // State to track success
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,12 +21,19 @@ const ResetPassword = () => {
       const data = await response.json();
       if (response.ok) {
         setMessage('Password has been updated. You can now log in.');
+        setIsSuccess(true); // Set success state
       } else {
         setMessage(data.error);
+        setIsSuccess(false); // Ensure success state is false
       }
     } catch (error) {
       setMessage('Something went wrong.');
+      setIsSuccess(false); // Ensure success state is false
     }
+  };
+
+  const handleGoToLogin = () => {
+    navigate('/'); // Redirect to the login screen
   };
 
   return (
@@ -44,8 +53,13 @@ const ResetPassword = () => {
             />
           </div>
           <button type="submit" className="login-button">Reset Password</button>
-          {message && <p className="error-message">{message}</p>} {/* Style message using same error class */}
+          {message && <p className="error-message">{message}</p>}
         </form>
+        {isSuccess && ( 
+          <button className="login-button" onClick={handleGoToLogin}>
+            Go to Login
+          </button>
+        )}
       </div>
     </div>
   );

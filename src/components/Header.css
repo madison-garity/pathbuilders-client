@@ -6,9 +6,10 @@
   align-items: center;
   position: fixed;
   top: 0;
-  width: 80%; /* Ensures the header spans the full width */
+  width: 75%; /* Ensures the header spans the full width */
   padding: 5px 20px;
   background-color: white; /* Set a default background */
+  margin-left: 40px;
   z-index: 1000; /* Ensure the header stays on top */
 }
 /* Branding text */
