@@ -1,37 +1,6 @@
-/* General container for the settings page */
-.settings-page {
-  display: flex;
-  height: 100vh;
-}
-
-/* Sidebar styling */
-.sidebar {
-  width: 250px;
-  background-color: #f0f4f7;
-  padding: 20px;
-}
-
-.sidebar h3 {
-  margin-bottom: 20px;
-}
-
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-}
-
-.sidebar li {
-  padding: 10px 0;
-}
-
-.sidebar .help, .sidebar .settings {
-  margin-top: 20px;
-  font-size: 14px;
-}
-
 /* Settings content */
 .settings-content {
-  flex-grow: 1;
+  width: 100%;
   padding: 20px;
 }
 
@@ -69,7 +38,8 @@
 .users-table .table-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 20px;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
 .users-table table {
@@ -84,12 +54,14 @@
 }
 
 .add-user {
-  background-color: #007bff;
+  background-color: #002d72;
+  height: 40px;
   color: white;
   border: none;
-  padding: 10px 15px;
+  padding: 0px 15px;
   border-radius: 5px;
   cursor: pointer;
+  width: 25%;
 }
 
 .add-user:hover {

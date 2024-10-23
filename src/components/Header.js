@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { BsSun, BsMoon } from 'react-icons/bs'; // Sun and Moon icons for light/dark mode
 import './Header.css';
 
-const Header = ({darkMode, setDarkMode}) => {
+const Header = ({darkMode, setDarkMode, user}) => {
   // Toggle between light and dark mode
   const handleToggle = () => {
     setDarkMode(!darkMode);
@@ -20,7 +20,7 @@ const Header = ({darkMode, setDarkMode}) => {
           {darkMode ? <BsSun size={24} /> : <BsMoon size={24} />} {/* Light/Dark Mode Icons */}
         </div>
         <div className="profile">
-          <span className="profile-icon">M</span> {/* Profile icon (just a placeholder here) */}
+        <span className="profile-icon">{user.firstName[0]}</span>
         </div>
       </div>
     </header>

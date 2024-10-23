@@ -2,22 +2,22 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { OpenAI } from 'openai';
 import ReactMarkdown from 'react-markdown';
+import { useEffect } from 'react';
 import './App.css';
-import Header from './components/Header';
+import ProtectedRoute from './ProtectedRoute'; // Import the ProtectedRoute component
 import Login from './components/Login';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
-import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import ChatInput from './components/ChatInput';
 import LoadingIcon from './components/LoadingIcon'; // Import the loading dots component
 import UsersPage from './components/UserPage'; // Import the UsersPage component
 import Layout from './components/Layout'; // Import the Layout component
+import AddUser from './components/AddUser'; // Import the AddUser component
 
 const App = () => {
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
-  const [threadId, setThreadId] = useState("thread_uzGft8YU4BRtz0EdSYu7kPbO");
+  const [threadId, setThreadId] = useState(null);
   const [loading, setLoading] = useState(false); // State for loading dots
   const [chats, setChats] = useState([
     { title: 'What is the Percepta program?', messages: [], isFavorite: false },
@@ -25,6 +25,7 @@ const App = () => {
   ]);
   const [currentChat, setCurrentChat] = useState(null); // To track the current 
   const [darkMode, setDarkMode] = useState(false); // State to track light/dark mode
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
 
   const configuration = {
     apiKey: process.env.REACT_APP_OPENAI_KEY,
@@ -35,9 +36,14 @@ const App = () => {
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const response = await fetch(process.env.REACT_APP_API_URL + '/api/chats'); // Adjust based on your API endpoint
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/chats?userId=${user.id}`, { 
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+  
         const data = await response.json();
-
+  
         // Group by favorites and recents, then sort by updatedAt
         const favorites = data.filter(chat => chat.isFavorite).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
         const recents = data.filter(chat => !chat.isFavorite).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
@@ -49,6 +55,7 @@ const App = () => {
 
     fetchChats();
   }, []);
+  
 
   // Function to create a thread
   const createThread = async () => {
@@ -67,8 +74,9 @@ const App = () => {
       }
 
       const data = await response.json();
-      setThreadId(data.id); // Save the thread ID for future requests
+      
       console.log('Thread created with ID:', data.id);
+      return data.id;
     } catch (error) {
       console.error('Error creating thread:', error);
     }
@@ -80,47 +88,58 @@ const App = () => {
     const newMessages = [...messages, { sender: 'user', text: message }];
     setMessages(newMessages);
   
+    let thread = null;
+    let newChat = null;
+  
     if (!currentChat) {
       try {
-        createThread();
+        thread = await createThread(); // Make sure this is awaited
+  
+        if (!thread) {
+          console.error('Failed to create thread');
+          setLoading(false);
+          return; // Stop further execution if thread creation failed
+        }
+        setThreadId(thread);
+  
         const chatResponse = await fetch(process.env.REACT_APP_API_URL + '/api/chats-with-message', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: message,
-            threadId: threadId,
-            userId: 'loggedInUserId', // Use actual user ID here
-            text: message,            // The first message
+            thread_id: thread, // Use the actual thread ID now
+            userId: user.id,  // Set your actual user ID here
+            text: message,    
           }),
         });
   
         const { chat, message: createdMessage } = await chatResponse.json();
+        newChat = chat;
         setCurrentChat(chat); // Set the new chat as current
         updateSidebarChats(chat); // Update sidebar with new chat
-        
       } catch (error) {
         console.error('Error creating new chat or adding message:', error);
         setLoading(false);
       }
     } else {
-      // If chat already exists, just send the message
       try {
-        await fetch(process.env.REACT_APP_API_URL + `/api/chats/${currentChat.id}/messages`, {
+        thread = currentChat.thread_id;
+        const chatResponse = await fetch(process.env.REACT_APP_API_URL + `/api/chats/${currentChat.id}/messages`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            chatId: currentChat.id,
-            text: message,
             sender: 'user',
+            text: message,
           }),
         });
+        newChat = currentChat;
       } catch (error) {
-        console.error('Error sending message:', error);
+        console.error('Error adding message to existing chat:', error);
         setLoading(false);
       }
     }
-
-    const response = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+  
+    const response = await fetch(`https://api.openai.com/v1/threads/${thread}/messages`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -132,14 +151,14 @@ const App = () => {
         content: message,
       }),
     });
-
+  
     if (!response.ok) {
       throw new Error(`Error: ${response.status}`);
     }
-
-    runThreadAndStreamResponse(); // Simulate the assistant response
+    runThreadAndStreamResponse(newChat)
     setLoading(false);
   };
+  
   
   // Fetch messages for the selected chat
   const handleLoadChat = async (chat) => {
@@ -162,28 +181,29 @@ const App = () => {
     });
   };
 
-  const runThreadAndStreamResponse = async () => {
+  const runThreadAndStreamResponse = async (chat) => {
     try {
       let currentText = ''; // Variable to hold the growing assistant response
-      const run = openai.beta.threads.runs.stream(threadId, {
+      let lastDeltaTime = Date.now(); // Track the time of the last delta
+  
+      const run = openai.beta.threads.runs.stream(chat.thread_id, {
         assistant_id: process.env.REACT_APP_ASSISTANT_ID,
+        max_completion_tokens: 500,  // Adjust this based on your needs
+        temperature: 1.0,
+        top_p: 1.0,
       })
         .on('textCreated', () => {
           console.log('\nAssistant is thinking...');
         })
         .on('textDelta', async (textDelta, snapshot) => {
-          setLoading(false); // Hide loading dots once the response starts streaming
-          console.log('Streaming text:', textDelta.value);
-  
-          // Append the delta to the growing response
+          lastDeltaTime = Date.now(); // Update time when a new delta arrives
           currentText += textDelta.value;
   
-          // Update the last message (assistant's message) with the streaming text
+          // Update messages in the UI
           setMessages((prevMessages) => {
             const lastMessage = prevMessages[prevMessages.length - 1];
   
-            // If the last message is from the assistant, update it
-            if (lastMessage.sender === 'assistant') {
+            if (lastMessage && lastMessage.sender === 'assistant') {
               const updatedMessages = [...prevMessages];
               updatedMessages[updatedMessages.length - 1] = {
                 ...lastMessage,
@@ -192,42 +212,39 @@ const App = () => {
               return updatedMessages;
             }
   
-            // If no assistant message exists, add a new one
             return [...prevMessages, { sender: 'assistant', text: currentText }];
           });
-  
-          // Save the assistant's streamed response to the backend
-          try {
-            await fetch(process.env.REACT_APP_API_URL + `/api/chats/${currentChat.id}/messages`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                chatId: currentChat.id,
-                text: currentText,
-                sender: 'assistant', // Save the assistant message
-              }),
-            });
-          } catch (error) {
-            console.error('Error saving assistant message:', error);
-          }
         })
-        .on('toolCallCreated', (toolCall) => {
-          console.log(`\nAssistant initiated a tool call: ${toolCall.type}`);
-        })
-        .on('toolCallDelta', (toolCallDelta) => {
-          console.log('\nTool call delta received:', toolCallDelta);
-          if (toolCallDelta.type === 'code_interpreter') {
-            console.log('\nCode Interpreter inputs:', toolCallDelta.code_interpreter.input);
-            console.log('\nCode Interpreter outputs:', toolCallDelta.code_interpreter.outputs);
-          }
+        .on('textDone', async (content, snapshot) => {
+          console.log("textDone:", JSON.stringify(content));
+          await saveAssistantMessageToDB(currentText, chat);
         })
         .on('error', (error) => {
           console.error('Stream encountered an error:', error);
-          setLoading(false); // Hide loading dots in case of an error
+          setLoading(false);
         });
+  
     } catch (error) {
       console.error('Error running thread and streaming response:', error);
-      setLoading(false); // Hide loading dots if there's an error
+      setLoading(false);
+    }
+  };
+  
+  // Function to save the final assistant message to the database
+  const saveAssistantMessageToDB = async (message, chat) => {
+    try {
+      console.log(chat)
+      await fetch(`${process.env.REACT_APP_API_URL}/api/chats/${chat.id}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: message,
+          sender: 'assistant',
+        }),
+      });
+      console.log('Assistant message saved successfully.');
+    } catch (error) {
+      console.error('Error saving assistant message to database:', error);
     }
   };
 
@@ -235,12 +252,16 @@ const App = () => {
       <Routes>
         {/* Routes that use the layout (with header and sidebar) */}
         <Route path="/app" element={
+          <ProtectedRoute user={user}>
           <Layout 
             chats={chats} 
-            handleNewChat={handleNewChat} 
+            setChats={setChats}
             handleLoadChat={handleLoadChat} 
             darkMode={darkMode} 
             setDarkMode={setDarkMode}
+            setCurrentChat={setCurrentChat}
+            setMessages={setMessages}
+            user={user}
           >
             {/* Main Chat Page */}
             {messages.length === 0 && !currentChat && (
@@ -260,23 +281,45 @@ const App = () => {
               <ChatInput onSend={handleSendMessage} />
             </div>
           </Layout>
+          </ProtectedRoute>
         } />
         
         {/* Settings / Users Page */}
         <Route path="/settings" element={
+          <ProtectedRoute user={user}>
           <Layout 
             chats={chats} 
-            handleNewChat={handleNewChat} 
+            setChats={setChats}
             handleLoadChat={handleLoadChat} 
             darkMode={darkMode} 
             setDarkMode={setDarkMode}
+            setCurrentChat={setCurrentChat}
+            setMessages={setMessages}
+            user={user}
           >
             <UsersPage />
           </Layout>
-        } />
-
+          </ProtectedRoute>
+        
+      } />
+          <Route path="/add-user" element={
+                    <ProtectedRoute user={user}>
+                    <Layout 
+                      chats={chats} 
+                      setChats={setChats}
+                      handleLoadChat={handleLoadChat} 
+                      darkMode={darkMode} 
+                      setDarkMode={setDarkMode}
+                      setCurrentChat={setCurrentChat}
+                      setMessages={setMessages}
+                      user={user}
+                    >
+                      <AddUser />
+                    </Layout>
+                    </ProtectedRoute>
+          } />
         {/* Routes without the layout (no header, no sidebar) */}
-        <Route path="/" element={<Login />} /> {/* Default route for login page */}
+        <Route path="/" element={<Login setUser={setUser}/>} /> {/* Default route for login page */}
         <Route path="/forgot-password" element={<ForgotPassword />} /> {/* Forgot password route */}
         <Route path="/reset-password/:token" element={<ResetPassword />} /> {/* Reset password route */}
       </Routes>

@@ -5,10 +5,17 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  overflow-y: auto;
+  
+  /* Fixed position to keep it in place */
   height: 100vh;
   position: fixed;
   top: 0;
+  left: 0; /* Ensures it stays on the left side of the viewport */
+  z-index: 9999; /* Ensure it's on top of other content */
+  
+  /* Internal scrolling only for sidebar content */
+  overflow-y: auto; /* Allows scrolling of the sidebar content */
+  overflow-x: hidden; /* Hide horizontal scroll bar */
 }
 
 /* Header section with two icons */
@@ -59,8 +66,8 @@ hr {
 }
 
 .sidebar-section {
-  padding: 0 20px;
-  flex-grow: 1;
+  padding: 0 10px;
+  flex-grow: .5;
 }
 
 .sidebar-section h4 {
@@ -84,15 +91,50 @@ hr {
   color: #002d72;
 }
 
-.chat-item {
-  padding: 8px 0;
-  font-size: 14px;
-  color: #002d72;
-  cursor: pointer;
+.chat-container {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.chat-item {
+  font-size: 14px;
+  color: #002d72;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-grow: 1;
+}
+
+.three-dot-menu {
+  position: relative; /* Relative positioning for the menu popup */
   margin-left: 10px;
 }
+
+.three-dot-icon {
+  cursor: pointer;
+}
+
+.menu-popup {
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 5px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+}
+
+.menu-popup div {
+  padding: 5px;
+  cursor: pointer;
+}
+
+.menu-popup div:hover {
+  background-color: #f0f0f0;
+}
+
 
 .chat-item span {
   margin-right: 10px;

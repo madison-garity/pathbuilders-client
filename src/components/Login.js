@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Login.css';
 import logo from '../assets/logo-light.png';
 
-const Login = () => {
+const Login = ({setUser}) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -25,7 +25,10 @@ const Login = () => {
 
       if (response.ok) {
         // Store the token in localStorage or a cookie
-        localStorage.setItem('token', data.token);
+        const { token, user } = data;
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        setUser(user);
         // Redirect to the app
         navigate('/app');
       } else {
