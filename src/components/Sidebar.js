@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { CiSettings } from 'react-icons/ci';
 import { AiOutlineQuestionCircle, AiOutlineHeart } from 'react-icons/ai';
@@ -6,10 +7,31 @@ import { FiEdit, FiMenu, FiMoreVertical } from 'react-icons/fi';
 import { MdAccessTime } from 'react-icons/md';
 import './Sidebar.css';
 
-const Sidebar = ({ chats, onLoadChat, setChats, setCurrentChat, setMessages }) => {
+const Sidebar = ({ chats, currentChat, onLoadChat, setChats, setCurrentChat, setMessages }) => {
   const [menuOpen, setMenuOpen] = useState(null); // Tracks which chat's menu is open
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 }); // To dynamically position the popup
   const menuRef = useRef(null);
+  const isSelectedChat = (chat) => currentChat && chat.id === currentChat.id;
+
+  const navigate = useNavigate();
+  const location = useLocation(); // Hook to check current location
+
+  const handleChatClick = (chat) => {
+    onLoadChat(chat); // Load the selected chat
+    
+    // If not already on /app, navigate to /app
+    if (location.pathname !== '/app') {
+      navigate('/app'); 
+    }
+  };
+
+  const handleNewChat = () => {
+    setCurrentChat(null); 
+    setMessages([]);
+    if (location.pathname !== '/app') {
+      navigate('/app'); 
+    }
+  }
 
   const handleToggleFavorite = async (chatId, isFavorite) => {
     try {
@@ -118,11 +140,11 @@ const Sidebar = ({ chats, onLoadChat, setChats, setCurrentChat, setMessages }) =
     <div className="sidebar">
       <div className="sidebar-header">
         <FiMenu className="menu-icon" />
-        <FiEdit className="new-chat-placeholder" />
+        <FiEdit className="new-chat-placeholder"  onClick={handleNewChat}/>
       </div>
 
       <div className="new-chat-container">
-        <div className="new-chat" onClick={() => {setCurrentChat(null); setMessages([])}}>
+        <div className="new-chat" onClick={handleNewChat}>
           <FiEdit className="new-chat-icon" /> New Chat
         </div>
         <hr />
@@ -137,8 +159,8 @@ const Sidebar = ({ chats, onLoadChat, setChats, setCurrentChat, setMessages }) =
       {chats.favorites && chats.favorites.length === 0 && <p>No favorite chats yet.</p>}
       {chats.favorites &&
         chats.favorites.map((chat) => (
-          <div className="chat-container" key={chat.id} title={chat.name}>
-            <div className="chat-item" onClick={() => onLoadChat(chat)}>
+          <div className={`chat-container ${isSelectedChat(chat) ? 'selected-chat' : ''}`} key={chat.id} title={chat.name}>
+            <div className="chat-item" onClick={() => handleChatClick(chat)}>
               {chat.name}
             </div>
             {renderThreeDotMenu(chat, true)} {/* Render three-dot menu */}
@@ -148,26 +170,25 @@ const Sidebar = ({ chats, onLoadChat, setChats, setCurrentChat, setMessages }) =
 
       {/* Recent Section */}
       <div className="sidebar-section">
-        
         <div className="subheader">
           <MdAccessTime className="icon-recents" /> Recent
         </div>
         {chats.recents && chats.recents.length === 0 && <p>No recent chats yet.</p>}
         {chats.recents &&
-          chats.recents.map((chat) => (
-            <div className="chat-container" key={chat.id} title={chat.name}>
-              <div className="chat-item" onClick={() => onLoadChat(chat)}>
-                {chat.name}
-              </div>
-              {renderThreeDotMenu(chat, false)} {/* Render three-dot menu */}
+        chats.recents.map((chat) => (
+          <div className={`chat-container ${isSelectedChat(chat) ? 'selected-chat' : ''}`} key={chat.id} title={chat.name}>
+            <div className="chat-item" onClick={() => handleChatClick(chat)}>
+              {chat.name}
             </div>
-          ))}
+            {renderThreeDotMenu(chat, false)} {/* Render three-dot menu */}
+          </div>
+        ))}
       </div>
 
       <div className="sidebar-footer">
-        <a className="settings" href='/settings'>
+        <Link className="settings" to='/settings'>
           <CiSettings className="settings-icon" /> Settings
-        </a>
+        </Link>
         <p>PATHBUILDERS® AI Assistant, 2024.</p>
       </div>
     </div>

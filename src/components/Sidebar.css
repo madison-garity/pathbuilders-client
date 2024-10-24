@@ -4,7 +4,6 @@
   background-color: rgba(229, 244, 255, 1);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   
   /* Fixed position to keep it in place */
   height: 100vh;
@@ -12,9 +11,9 @@
   top: 0;
   left: 0; /* Ensures it stays on the left side of the viewport */
   z-index: 9999; /* Ensure it's on top of other content */
-  
+
   /* Internal scrolling only for sidebar content */
-  overflow-y: auto; /* Allows scrolling of the sidebar content */
+  overflow-y: auto;
   overflow-x: hidden; /* Hide horizontal scroll bar */
 }
 
@@ -30,11 +29,13 @@
 .menu-icon {
   font-size: 20px;
   color: #94b3c5; /* Light blue color for the left menu icon */
+  cursor: pointer;
 }
 
 .new-chat-placeholder {
   font-size: 20px;
   color: #94b3c5; /* Light blue color for the placeholder icon */
+  cursor: pointer;
 }
 
 /* New Chat Button on a new line */
@@ -57,6 +58,7 @@
   margin-right: 8px;
   font-size: 20px; /* Slightly larger for the pencil icon */
   color: #003366; /* Same dark blue for the icon */
+  cursor: pointer;
 }
 
 hr {
@@ -65,9 +67,9 @@ hr {
   margin: 10px 0;
 }
 
+/* Sidebar sections container */
 .sidebar-section {
-  padding: 0 10px;
-  flex-grow: .5;
+  padding: 0 20px;
 }
 
 .sidebar-section h4 {
@@ -135,7 +137,6 @@ hr {
   background-color: #f0f0f0;
 }
 
-
 .chat-item span {
   margin-right: 10px;
 }
@@ -145,10 +146,22 @@ hr {
   border-radius: 5px;
 }
 
+/* Sidebar footer */
 .sidebar-footer {
   padding: 20px;
   font-size: 14px;
-  color:rgba(12, 57, 85, 1);
+  color: rgba(12, 57, 85, 1);
+  margin-top: auto; /* Ensure the footer sticks to the bottom */
+}
+
+.sidebar-footer .settings {
+  text-decoration: none; /* Removes underline */
+  color: #002d72; /* Set the desired text color */
+}
+
+.sidebar-footer .settings:hover {
+  text-decoration: none; /* Still no underline on hover */
+  color: #002d72; /* Change color on hover if desired */
 }
 
 .sidebar-footer div {
@@ -169,6 +182,27 @@ hr {
   color: rgba(12, 57, 85, 1);
 }
 
+/* Styling for the selected chat */
+.selected-chat {
+  background-color: rgba(12, 57, 85, 1);
+  color: rgba(229, 244, 255, 1); /* Change the text color */
+  border-radius: 5px;
+}
+
+.selected-chat .chat-item {
+  font-weight: bold; /* Make the text bold for the selected chat */
+  color: rgba(229, 244, 255, 1); /* Change the color of the text */
+}
+
+.dark-mode .selected-chat {
+  background-color: rgba(229, 244, 255, 1);  /* Lighter background for dark mode */
+  color: rgba(12, 57, 85, 1); /* Darker text color for dark mode */
+}
+
+.dark-mode .selected-chat .chat-item {
+  color: rgba(12, 57, 85, 1); /* Darker text color for dark mode */
+}
+
 /* Dark mode for sidebar */
 .dark-mode .sidebar {
   background-color: rgba(8, 72, 112, 1);
@@ -176,7 +210,7 @@ hr {
 
 .dark-mode .sidebar-header,
 .dark-mode .new-chat-container,
-.dark-mode .sidebar-section,
+.dark-mode .sidebar-sections,
 .dark-mode .sidebar-footer {
   color: rgba(229, 244, 255, 1);
 }
@@ -189,7 +223,9 @@ hr {
   color: rgba(229, 244, 255, 1); /* Light blue for icons */
 }
 
-.dark-mode .chat-item, .dark-mode .subheader, .dark-mode .new-chat {
+.dark-mode .chat-item,
+.dark-mode .subheader,
+.dark-mode .new-chat {
   color: rgba(229, 244, 255, 1);
 }
 
@@ -210,4 +246,3 @@ hr {
 .dark-mode .sidebar-footer p {
   color: rgba(229, 244, 255, 1);
 }
-

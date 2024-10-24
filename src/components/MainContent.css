@@ -6,6 +6,8 @@
   width: 700px;
   text-align: left; /* Set the text alignment to left */
   background-color: #ffffff;
+  padding-top: 80px;
+  padding-bottom: 80px;
 }
 
 .content-header {

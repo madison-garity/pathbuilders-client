@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { OpenAI } from 'openai';
 import ReactMarkdown from 'react-markdown';
@@ -14,10 +14,10 @@ import LoadingIcon from './components/LoadingIcon'; // Import the loading dots c
 import UsersPage from './components/UserPage'; // Import the UsersPage component
 import Layout from './components/Layout'; // Import the Layout component
 import AddUser from './components/AddUser'; // Import the AddUser component
+import Header from './components/Header'; // Import the Header component
 
 const App = () => {
   const [messages, setMessages] = useState([]);
-  const [threadId, setThreadId] = useState(null);
   const [loading, setLoading] = useState(false); // State for loading dots
   const [chats, setChats] = useState([
     { title: 'What is the Percepta program?', messages: [], isFavorite: false },
@@ -32,6 +32,18 @@ const App = () => {
     dangerouslyAllowBrowser: true
   };
   const openai = new OpenAI(configuration);
+
+  const messagesEndRef = useRef(null); // Ref to the last message
+
+  // Scroll to bottom function
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Scroll to the bottom whenever the messages array changes
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     const fetchChats = async () => {
@@ -100,7 +112,6 @@ const App = () => {
           setLoading(false);
           return; // Stop further execution if thread creation failed
         }
-        setThreadId(thread);
   
         const chatResponse = await fetch(process.env.REACT_APP_API_URL + '/api/chats-with-message', {
           method: 'POST',
@@ -254,7 +265,8 @@ const App = () => {
         <Route path="/app" element={
           <ProtectedRoute user={user}>
           <Layout 
-            chats={chats} 
+            chats={chats}
+            currentChat={currentChat} 
             setChats={setChats}
             handleLoadChat={handleLoadChat} 
             darkMode={darkMode} 
@@ -263,6 +275,8 @@ const App = () => {
             setMessages={setMessages}
             user={user}
           >
+            
+          <Header darkMode={darkMode} setDarkMode={setDarkMode} user={user} />
             {/* Main Chat Page */}
             {messages.length === 0 && !currentChat && (
               <div className="center-content">
@@ -277,6 +291,8 @@ const App = () => {
                   </div>
                 ))}
                 {loading && <LoadingIcon />} {/* Show loading dots while waiting for the response */}
+                {/* This div will always be at the bottom of the messages */}
+                <div ref={messagesEndRef} />
               </div>
               <ChatInput onSend={handleSendMessage} />
             </div>
@@ -289,6 +305,7 @@ const App = () => {
           <ProtectedRoute user={user}>
           <Layout 
             chats={chats} 
+            currentChat={currentChat} 
             setChats={setChats}
             handleLoadChat={handleLoadChat} 
             darkMode={darkMode} 
@@ -307,6 +324,7 @@ const App = () => {
                     <Layout 
                       chats={chats} 
                       setChats={setChats}
+                      currentChat={currentChat} 
                       handleLoadChat={handleLoadChat} 
                       darkMode={darkMode} 
                       setDarkMode={setDarkMode}

@@ -14,14 +14,12 @@
   display: flex;
   flex-direction: column;/* Start at the top and expand down */
   padding-left: 250px;
-  padding-top: 20px;
 }
 
 .main-content-area {
   display: flex;
   flex-direction: column;
   align-items: center; /* Center horizontally */
-  padding: 60px;
 }
 
 .center-content {
@@ -46,6 +44,7 @@
   justify-content: flex-start; /* Align messages at the top */
   align-items: flex-start;
   width: 100%;
+  padding-bottom: 80px;
 }
 
 /* Message bubbles styling */
